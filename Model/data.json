@@ -1,0 +1,20 @@
+[
+    {
+      "id":1,
+      "title":"모여봐요 동물의 숲",
+      "publisher":"Nintendo",
+      "year":2020
+    },
+    {
+      "id":2,
+      "title":"링 피트 어드벤처",
+      "publisher":"Nintendo",
+      "year":2019
+    },
+    {
+      "id":3,
+      "title":"젤다의 전설 꿈꾸는 섬",
+      "publisher":"Nintendo",
+      "year":2019
+    }
+]
