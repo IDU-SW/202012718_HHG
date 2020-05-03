@@ -1,0 +1,90 @@
+<html>
+<head>
+   <meta charset="UTF-8" />
+    <title>게임정보 리스트 페이지</title>
+</head>
+<body>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            listGame();
+        }); 
+        function listGame(){
+            $.ajax({
+                url : '/games',
+                type : 'get',
+                datatype: "json",
+                success : function(data) {
+                    const items = data.data;
+                    $("#games").empty();
+                    for (item of items) {
+                        let id = item.id;
+                        var li = $(`<li>${item.id}. ${item.title} </li>`);
+                        var infoBtn = $(`<input type="button" value="게임상세">`);
+                        var deleteBtn = $(`<input type="button" value="게임삭제">`);
+                        infoBtn.on("click", function(){
+                            $.ajax({
+                                url : `/games/${id}`,
+                                type : 'get',
+                                datatype: "json",
+                                success : function(data) {
+                                    $("#games").empty();
+                                    var item = data;
+                                    var li = $(`<li>제목:${item.title} | 배급사:${item.publisher} | 출시년도:${item.year}</li>`);
+                                    $("#games").append(li);
+                                }
+                            })
+                        })
+                        deleteBtn.on("click", function(){
+                            var param = {
+                                "id": id
+                            };
+                            $.ajax({
+                                url : '/games',
+                                type : 'delete',
+                                datatype: "json",
+                                data: param,
+                                success : function(data) {
+                                    listGame();
+                                }
+                            })
+                        })
+                        li.append(infoBtn);
+                        li.append(deleteBtn);
+                        $("#games").append(li);
+                    }
+                }
+            })
+        }
+        // function infoGame(id){
+        //     $.ajax({
+        //         url : `/games/${id}`,
+        //         type : 'get',
+        //         success : function(data) {
+        //             $("#games").empty();
+        //             var item = data;
+        //             var li = $(`<li>제목:${item.title} | 배급사:${item.publisher} | 출시년도:${item.year}</li>`);
+        //         }
+        //     })
+        // }
+        // function deleteGame(id){
+        //     var param = {
+        //         "id": id
+        //     };
+        //     $.ajax({
+        //         url : '/games',
+        //         type : 'delete',
+        //         datatype: "json",
+        //         data: param,
+        //         success : function(data) {
+        //             listGame();
+        //         }
+        //     })
+        // }
+    </script>
+    <ul id="games">
+    </ul>
+    <input type="button" value="게임리스트 보기" onclick="listGame()">
+    <input type="button" value="게임추가" onclick="location.href='/gameAdd.html'">
+</body>
+</html>

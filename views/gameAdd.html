@@ -1,0 +1,36 @@
+<html>
+<head>
+   <meta charset="UTF-8" />
+    <title>게임정보 추가 페이지</title>
+</head>
+<body>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        function addGame(){
+            var param = {
+                "title": $("#title").val(),
+                "publisher": $("#publisher").val(),
+                "year": $("#year").val()
+            };
+            $.ajax({
+                url : '/games',
+                type : 'post',
+                datatype: "json",
+                data : param,
+                success : function(data) {
+                    alert('게임등록 성공');
+                }, 
+                fail: function(){
+                    alert('게임등록 실패');
+                }
+            })
+        }
+    </script>
+    <ul>
+        <li> 제목 <input type="text" name="title" id="title" size="20"> </li>
+        <li> 배급사 <input type="text" name="publisher" id="publisher" size="20"> </li>
+        <li> 출시년도 <input type="text" name="year" id="year" size="20"> </li>
+        <input type="button" value="저장하기" onclick="addGame()">
+    </ul>
+</body>
+</html>
