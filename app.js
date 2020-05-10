@@ -14,5 +14,6 @@ app.get('/gameAdd.html', (req, res) => {
 app.get('/gameInfo.html', (req, res) => {
     res.sendFile(__dirname + '/views/gameInfo.html');
 });
-
+// app.engine('html', require('ejs').renderFile);
+// app.set('view engine', 'html');
 module.exports = app;
