@@ -1,4 +1,6 @@
 const fs = require('fs');
+const pool = require('./dbConnection');
+const {prepareTable} = require('./prepareTable');
 
 class Game {
     constructor() {
@@ -7,69 +9,103 @@ class Game {
     }
 
     // Promise 예제
-    getGameList() {
-        if (this.games) {
-            return this.games;
-        }
-        else {
-            return [];
+    getGameList = async() => {
+        // if (this.games) {
+        //     return this.games;
+        // }
+        // else {
+        //     return [];
+        // }
+
+        const sql = 'SELECT * FROM games';
+        let conn;
+        try {
+            var returnList = new Array();
+            conn = await pool.getConnection();
+            const [games, metadata] = await conn.query(sql);
+            console.log("games", games);
+            // for(let game of games) {
+            //     returnList.push(game);
+            // }
+            // console.log("returnList:",returnList);
+            return games;
+        } catch(error){
+            console.error(error);
+        } finally {
+            if(conn) {
+                conn.release();
+            }
         }
     }
 
-    addGame(title, publisher, year) {
-        return new Promise((resolve, reject) => {
-            let last = this.games[this.games.length - 1];
-            let id = last.id + 1;
-
-            let newGame = {id, title, publisher, year};
-            this.games.push(newGame);
-
-            resolve(newGame);
-        });
+    addGame = async(title, publisher, year) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            
+            const sqlI = 'INSERT INTO games(title, publisher, year) values (?, ?, ?)';
+            const data = [title, publisher, year];
+            const resultI = await conn.query(sqlI, data);
+            
+            const sqlS = 'SELECT * FROM games WHERE id = ?;';
+            const resultS = await conn.query(sqlS, resultI[0].insertId);
+            return resultS[0];
+        } catch(error) {
+            console.error(error);
+        } finally {
+            if(conn) {
+                conn.release();
+            }
+        }
     }
 
     // Promise - Reject
-    getGameDetail(gameId) {
-        return new Promise((resolve, reject) => {
-            for (var game of this.games ) {
-                if ( game.id == gameId ) {
-                    resolve(game);
-                    return;
-                }
+    getGameDetail = async(gameId) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const sql = 'SELECT * FROM games WHERE id = ?;';
+            const [detail, metadata] = await conn.query(sql, gameId);
+            return detail[0];
+        } catch(error) {
+            console.error(error);
+        } finally {
+            if(conn){
+                conn.release();
             }
-            reject({msg:'Can not find game', code:404});
-        });
+        }
     }
 
-    deleteGame(gameId) {
-        return new Promise((resolve, reject) => {
-            let cnt = 0;
-            for (var game of this.games ) {
-                if ( game.id == gameId ) {
-                    this.games.splice(cnt, 1);
-                    resolve(game);
-                    return;
-                }
-                cnt+=1;
+    deleteGame = async(gameId) => {
+        const sql = 'DELETE FROM games WHERE id = ?';
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const result = await conn.query(sql, [gameId]);
+            return null;
+        } catch(error){
+            console.error(error);
+        } finally {
+            if (conn){
+                conn.release();
             }
-            reject({msg:'Can not find game', code:404});
-        });
+        }
     }
 
-    updateGame(gameId, title, publisher, year){
-        return new Promise((resolve, reject) => {
-            for (var game of this.games ) {
-                if ( game.id == gameId ) {
-                    game.title = title;
-                    game.publisher = publisher;
-                    game.year = year;
-
-                    resolve(game);
-                    return;
-                }
+    updateGame = async(gameId, title, publisher, year) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const sql = 'UPDATE games SET title = ?, publisher = ?, year = ? WHERE id = ?';
+            await conn.query(sql, [title, publisher, year, gameId]);
+            return this.getGameDetail(gameId);
+        } catch (error){
+            console.error(error);
+        } finally {
+            if(conn){
+                conn.release();
             }
-            reject({msg:'Can not find game', code:404});
-        });
+        }
     }
 }
 

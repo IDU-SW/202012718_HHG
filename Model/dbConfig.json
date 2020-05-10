@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "user": "dev",
+    "password": "secret",
+    "port": 3306,
+    "database": "games"
+ }

@@ -10,11 +10,13 @@ router.delete('/games', deleteGame);
 
 module.exports = router;
 
+// router.get('/games', async (req, res) => {
 function showGameList(req, res) {
     const gameList = games.getGameList();
     const result = { data:gameList, count:gameList.length };
     res.send(result);
-}
+    // res.render('games', {games:gameList, count:gameList.length})
+};
 
 
 // Async-await를 이용하기
