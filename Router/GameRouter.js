@@ -10,8 +10,8 @@ router.delete('/games', deleteGame);
 
 module.exports = router;
 
-function showGameList(req, res) {
-    const gameList = games.getGameList();
+async function showGameList(req, res) {
+    const gameList = await games.getGameList();
     const result = { data:gameList, count:gameList.length };
     res.send(result);
 };
