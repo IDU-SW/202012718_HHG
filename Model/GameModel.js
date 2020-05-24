@@ -1,23 +1,22 @@
 const fs = require('fs');
 const pool = require('./dbConnection');
 const {prepareTable} = require('./prepareTable');
-const Sequelize = require('sequelize');
-const dbConnectUri = 'mysql://dev:secret@127.0.0.1:3306/example';
-const sequelize = new Sequelize(dbConnectUri); 
+// const Sequelize = require('sequelize');
+// const dbConnectUri = 'mysql://dev:secret@127.0.0.1:3306/example';
+// const sequelize = new Sequelize(dbConnectUri); 
+var MongoClient = require('mongodb').MongoClient
+var url = 'mongodb://localhost:27017';
+var ObjectID = require('mongodb').ObjectID;
 
-class Games extends Sequelize.Model { }
-    Games.init({
-        id: { 
-            type: Sequelize.INTEGER,
-            autoIncrement: true,
-            primaryKey: true
-        },
-        title: Sequelize.STRING,
-        publisher: Sequelize.STRING,
-        year: Sequelize.INTEGER
-    }, {tableName:'games', sequelize, timestamps: false});
+var db;
 
-
+MongoClient.connect(url, { useUnifiedTopology: true }, function (err, database) {
+    if (err) {
+        console.error('MongoDB 연결 실패', err);
+        return;
+    }
+    db = database.db('example');
+});
 
 class Game {
     constructor() {
@@ -27,7 +26,7 @@ class Game {
 
     async oneDataInsert(game) {
         try {
-            let gameData = await Games.create({ 
+            let gameData = await db.collection('game').insertOne({ 
                             title : game.title, 
                             publisher : game.publisher, 
                             year : game.year
@@ -40,46 +39,12 @@ class Game {
         }
     }
 
-    async allDataInsert() {
-        const data = fs.readFileSync('./model/data.json');
-        const games = JSON.parse(data);
-        for (var game of games ) {
-            await this.oneDataInsert(game);
-        }
-    }
-
     // Promise 예제
     getGameList = async() => {
-        let returnValue;
-        await Games.findAll({})
-        .then( results => {
-            returnValue = results;
-        })
-        .catch( error => {
-            console.error('Error :', error);
-        });
-        return returnValue;
+        return await db.collection('game').find({}).toArray();
     }
 
     addGame = async(title, publisher, year) => {
-        // let conn;
-        // try {
-        //     conn = await pool.getConnection();
-            
-        //     const sqlI = 'INSERT INTO games(title, publisher, year) values (?, ?, ?)';
-        //     const data = [title, publisher, year];
-        //     const resultI = await conn.query(sqlI, data);
-            
-        //     const sqlS = 'SELECT * FROM games WHERE id = ?;';
-        //     const resultS = await conn.query(sqlS, resultI[0].insertId);
-        //     return resultS[0];
-        // } catch(error) {
-        //     console.error(error);
-        // } finally {
-        //     if(conn) {
-        //         conn.release();
-        //     }
-        // }
         const games = {title, publisher, year};
         try {
             const returnValue = await this.oneDataInsert(games);
@@ -93,16 +58,7 @@ class Game {
     // Promise - Reject
     getGameDetail = async(gameId) => {
         try {
-            const ret = await Games.findAll({
-                where:{id:gameId}
-            });
-
-            if ( ret ) {
-                return ret[0];
-            }
-            else {
-                console.log('데이터 없음');
-            }
+            return await db.collection('game').findOne({ _id: new ObjectID(gameId) });
         }
         catch (error) {
             console.log('Error :', error);
@@ -110,48 +66,22 @@ class Game {
     }
 
     deleteGame = async(gameId) => {
-        // const sql = 'DELETE FROM games WHERE id = ?';
-        // let conn;
-        // try {
-        //     conn = await pool.getConnection();
-        //     const result = await conn.query(sql, [gameId]);
-        //     return null;
-        // } catch(error){
-        //     console.error(error);
-        // } finally {
-        //     if (conn){
-        //         conn.release();
-        //     }
-        // }
         try {
-            let result = await Games.destroy({where: {id:gameId}});
+            let result = await db.collection('game').deleteOne({ _id: new ObjectID(gameId) });
         } catch (error) {
             console.error(error);  
         }
     }
 
     updateGame = async(gameId, title, publisher, year) => {
-        // let conn;
-        // try {
-        //     conn = await pool.getConnection();
-        //     const sql = 'UPDATE games SET title = ?, publisher = ?, year = ? WHERE id = ?';
-        //     await conn.query(sql, [title, publisher, year, gameId]);
-        //     return this.getGameDetail(gameId);
-        // } catch (error){
-        //     console.error(error);
-        // } finally {
-        //     if(conn){
-        //         conn.release();
-        //     }
-        // }
-
         try {
             let game = await this.getGameDetail(gameId);
             game.dataValues.title = !title ? game.title : title;
             game.dataValues.publisher = !publisher ? game.publisher : publisher;
             game.dataValues.year = !year ? game.year : year;
 
-            let ret = await game.save();
+            let ret = await db.collection('game').updateOne({_id: new ObjectID(gameId)}, {$set : {title: title, publisher: publisher, year: year}});
+
             return ret;
         } catch (error) {
             console.error(error);  

@@ -57,7 +57,7 @@ async function addGame(req, res) {
 
 async function updateGame(req, res) {
     const title = req.body.title;
-    const id = req.body.id;
+    const id = req.body._id;
 
     if (!title) {
         res.status(400).send({error:'title 누락'});
@@ -84,7 +84,7 @@ async function updateGame(req, res) {
 async function deleteGame(req, res) {
     try {
         // 게임 상세 정보 Id
-        const gameId = req.body.id;
+        const gameId = req.body._id;
         console.log('gameId : ', gameId);
         const info = await games.deleteGame(gameId);
         res.send('Delete Success, 200');
