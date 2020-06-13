@@ -29,3 +29,13 @@
     + 필요파라미터 : id
     + 예시 : { "id":"1" }
 
+* 인증된 유저정보
+<pre>
+<code>
+  user = {
+    id : 'hgHong',
+    password : 'cometure',
+    name : '홍현교'
+  }
+</code>
+</pre>

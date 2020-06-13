@@ -1,6 +1,11 @@
+const jwt = require('jsonwebtoken'); //인증토큰
 const express = require('express');
 const router = express.Router();
 const games = require('../model/GameModel');
+
+router.post('/login', handleLogin);
+router.get('/profile', sendProfile);
+router.get('/public', sendPublicInfo);
 
 router.get('/games', showGameList);
 router.get('/games/:gameId', showGameDetail);
@@ -10,10 +15,42 @@ router.delete('/games', deleteGame);
 
 module.exports = router;
 
+
+const secretKey = '202012718'
+
+const user = {
+    id : 'hgHong',
+    password : 'cometure',
+    name : '홍현교'
+ }
+
+function handleLogin(req, res) {
+    const id = req.body.id;
+    const pw = req.body.password;
+
+    // 로그인 성공
+    if (id === user.id && pw === user.password) {
+        // 토큰 생성
+        const token = jwt.sign({ id: user.id, name: user.name }, secretKey);
+        res.send({ msg: 'success', token: token });
+    }
+    else {
+        res.sendStatus(401);
+    }
+}
+
 async function showGameList(req, res) {
     const gameList = await games.getGameList();
     const result = { data:gameList, count:gameList.length };
-    res.send(result);
+    const token = req.headers['authorization'];
+    
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if(err){
+            res.sendStatus(401);
+            return; 
+        }
+        res.send(result);
+    });
 };
 
 
